@@ -84,19 +84,25 @@ async function generateGeminiLesson(request) {
     // large, highly variable drawing-command schema into a constrained decoder.
     // parseGeminiLesson and the endpoint still enforce the complete Zod contract.
     const body = { contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { temperature: 0.35, maxOutputTokens: 1800, responseMimeType: "application/json", thinkingConfig: { thinkingLevel: "low" } } };
-    const endpoint = "https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(env.GEMINI_MODEL) + ":generateContent";
-    for (let attempt = 0; attempt < 2; attempt++) {
+    const models = [...new Set([env.GEMINI_MODEL, env.GEMINI_FALLBACK_MODEL])];
+    let lastProviderError;
+    for (const [modelIndex, model] of models.entries()) {
+        const endpoint = "https://generativelanguage.googleapis.com/v1beta/models/" + encodeURIComponent(model) + ":generateContent";
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), env.GEMINI_TIMEOUT_MS);
         try {
             const response = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY }, body: JSON.stringify(body), signal: controller.signal });
             const payload = await response.json().catch(() => null);
             if (!response.ok) {
-                if (attempt === 0 && (response.status === 429 || response.status >= 500)) {
-                    await new Promise((resolve) => setTimeout(resolve, 350));
+                const error = providerError(response.status, payload, env.GEMINI_API_KEY);
+                // A 503 is a temporary model-capacity problem. Try a second live Gemini
+                // model before returning an error to the learner. A 429 can also be
+                // model-specific, so give the fallback the same opportunity.
+                if (modelIndex < models.length - 1 && (response.status === 429 || response.status === 503)) {
+                    lastProviderError = error;
                     continue;
                 }
-                throw providerError(response.status, payload, env.GEMINI_API_KEY);
+                throw error;
             }
             const candidate = payload?.candidates?.[0]?.content?.parts?.map((part) => part.text ?? "").join("");
             if (!candidate)
@@ -109,14 +115,15 @@ async function generateGeminiLesson(request) {
             if (controller.signal.aborted || (error instanceof Error && error.name === "AbortError")) {
                 throw new TutorProviderError("The tutor is taking longer than expected. Please try again in a moment.", "AI_TIMEOUT", 504);
             }
-            if (attempt === 0) {
-                await new Promise((resolve) => setTimeout(resolve, 350));
+            if (modelIndex < models.length - 1)
                 continue;
-            }
+            throw new TutorProviderError("We couldn't connect to Gemini. Please try again in a moment.", "AI_UNAVAILABLE", 503);
         }
         finally {
             clearTimeout(timer);
         }
     }
+    if (lastProviderError)
+        throw lastProviderError;
     throw new TutorProviderError("We couldn't connect to the tutor service. Please check your connection and try again.", "AI_UNAVAILABLE", 503);
 }
