@@ -18,7 +18,8 @@ function createApp(generate) {
     app.disable("x-powered-by");
     // Render's web-service proxy supplies X-Forwarded-For. Trust only the single
     // hop in production so express-rate-limit can key requests by client IP.
-    app.set("trust proxy", env.NODE_ENV === "production" ? 1 : false);
+    const isBehindRenderProxy = process.env.RENDER === "true";
+    app.set("trust proxy", isBehindRenderProxy || env.NODE_ENV === "production" ? 1 : false);
     app.use((_req, res, next) => { res.setHeader("X-Content-Type-Options", "nosniff"); res.setHeader("X-Frame-Options", "DENY"); res.setHeader("Referrer-Policy", "no-referrer"); res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()"); next(); });
     app.use((0, cors_1.default)({ origin: env.NODE_ENV === "production" ? env.CLIENT_ORIGIN : [env.CLIENT_ORIGIN, "http://localhost:3001"], methods: ["GET", "POST"], allowedHeaders: ["Content-Type"] }));
     app.use(express_1.default.json({ limit: "12kb", strict: true }));

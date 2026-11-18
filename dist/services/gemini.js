@@ -24,6 +24,12 @@ function providerError(status, payload, apiKey) {
     const providerMessage = typeof provider?.message === "string" ? provider.message : "";
     const detailText = Array.isArray(provider?.details) ? JSON.stringify(provider.details) : "";
     const diagnostic = `${providerStatus} ${providerMessage} ${detailText}`.toUpperCase();
+    const safeDetail = providerMessage
+        .replaceAll(apiKey, "[redacted]")
+        .replace(/[\r\n\t]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, 240);
     // Keep upstream text and request contents out of the browser response and logs.
     if (diagnostic.includes("API_KEY_INVALID") || /API KEY NOT VALID|INVALID API KEY/.test(diagnostic) || status === 401) {
         return new TutorProviderError("Gemini rejected the API key. Replace GEMINI_API_KEY with a valid key from Google AI Studio, then restart the server.", "AI_INVALID_KEY", 503);
@@ -35,12 +41,6 @@ function providerError(status, payload, apiKey) {
     if (status === 404)
         return new TutorProviderError("The configured Gemini model was not found. Check GEMINI_MODEL in the server environment.", "AI_MODEL_NOT_FOUND", 503);
     if (status === 400) {
-        const safeDetail = providerMessage
-            .replaceAll(apiKey, "[redacted]")
-            .replace(/[\r\n\t]/g, " ")
-            .replace(/\s+/g, " ")
-            .trim()
-            .slice(0, 240);
         const message = safeDetail
             ? `Gemini rejected the request: ${safeDetail}`
             : "Gemini rejected the request. Check the configured model and structured response settings.";
@@ -48,6 +48,10 @@ function providerError(status, payload, apiKey) {
     }
     if (status === 429)
         return new TutorProviderError("Gemini is busy or this project has reached its usage limit. Wait a moment and try again.", "AI_RATE_LIMITED", 429);
+    if (status >= 500) {
+        const reason = safeDetail || providerStatus || "temporary internal error";
+        return new TutorProviderError(`Gemini returned HTTP ${status}: ${reason}. Please try again shortly.`, "AI_PROVIDER_ERROR", 502);
+    }
     return new TutorProviderError("Gemini is temporarily unable to complete this lesson. Please try again shortly.", "AI_PROVIDER_ERROR", 502);
 }
 function parseGeminiLesson(text) {
