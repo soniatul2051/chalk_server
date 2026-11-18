@@ -16,6 +16,9 @@ function createApp(generate) {
     const app = (0, express_1.default)();
     const createLesson = generate ?? (async (input) => env.GEMINI_API_KEY ? (0, gemini_js_1.generateGeminiLesson)(input) : (0, demo_js_1.demoLessonFor)(input.question, input.lessonContext));
     app.disable("x-powered-by");
+    // Render's web-service proxy supplies X-Forwarded-For. Trust only the single
+    // hop in production so express-rate-limit can key requests by client IP.
+    app.set("trust proxy", env.NODE_ENV === "production" ? 1 : false);
     app.use((_req, res, next) => { res.setHeader("X-Content-Type-Options", "nosniff"); res.setHeader("X-Frame-Options", "DENY"); res.setHeader("Referrer-Policy", "no-referrer"); res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()"); next(); });
     app.use((0, cors_1.default)({ origin: env.NODE_ENV === "production" ? env.CLIENT_ORIGIN : [env.CLIENT_ORIGIN, "http://localhost:3001"], methods: ["GET", "POST"], allowedHeaders: ["Content-Type"] }));
     app.use(express_1.default.json({ limit: "12kb", strict: true }));
