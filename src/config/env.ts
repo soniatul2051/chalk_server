@@ -1,0 +1,3 @@
+import { z } from "zod";
+const envSchema = z.object({ PORT: z.coerce.number().int().min(1).max(65535).default(4000), NODE_ENV: z.enum(["development", "test", "production"]).default("development"), GEMINI_API_KEY: z.string().optional(), GEMINI_MODEL: z.string().min(1).default("gemini-flash-latest"), GEMINI_TIMEOUT_MS: z.coerce.number().int().min(10_000).max(120_000).default(60_000), CLIENT_ORIGIN: z.string().url().default("http://localhost:3000") });
+export function getEnv(source: NodeJS.ProcessEnv = process.env) { const result = envSchema.safeParse(source); if (!result.success) throw new Error(`Invalid server configuration: ${result.error.issues.map((issue) => issue.path.join(".")).join(", ")}`); return result.data; }
