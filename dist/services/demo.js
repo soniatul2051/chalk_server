@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.demoLessonFor = demoLessonFor;
-const shared_1 = require("@chalk/shared");
+const contracts_js_1 = require("../schemas/contracts.js");
 const make = (id, title, summary, equation, steps, suggestions) => ({ lessonId: id, title, summary, steps, followUpSuggestions: suggestions, demo: true });
 function demoLessonFor(question, context) {
     if (context) {
@@ -26,5 +26,5 @@ function demoLessonFor(question, context) {
             { id: "plant-1", explanation: "Leaves take in sunlight and carbon dioxide from the air. Roots bring water up from the soil.", narration: "Plants gather sunlight with their leaves, take in carbon dioxide from the air, and draw water up through their roots.", durationMs: 5200, drawCommands: [{ type: "line", x: 0, y: 0, points: [400, 100, 400, 360], stroke: "#29846f" }, { type: "polygon", x: 0, y: 0, points: [400, 205, 310, 175, 350, 145, 400, 205], stroke: "#29846f", fill: "#e7f6f1" }, { type: "polygon", x: 0, y: 0, points: [400, 270, 490, 235, 450, 205, 400, 270], stroke: "#29846f", fill: "#e7f6f1" }, { type: "circle", x: 180, y: 115, radius: 44, stroke: "#dd8b4a", fill: "#fff0d5" }, { type: "arrow", x: 230, y: 150, points: [230, 150, 315, 185], stroke: "#dd8b4a" }, { type: "text", x: 510, y: 110, text: "sunlight + CO₂ + water", fill: "#20243a", fontSize: 22 }] },
             { id: "plant-2", explanation: "Using light energy, the plant makes glucose (a kind of sugar) and releases oxygen. This process is photosynthesis.", narration: "With light energy, the plant makes glucose for food and releases oxygen. That's photosynthesis.", durationMs: 5200, drawCommands: [{ type: "equation", x: 220, y: 125, text: "CO₂ + H₂O + light", fill: "#20243a", fontSize: 32 }, { type: "arrow", x: 440, y: 200, points: [440, 200, 550, 200], stroke: "#7667e8" }, { type: "equation", x: 565, y: 125, text: "sugar + O₂", fill: "#29846f", fontSize: 32 }, { type: "text", x: 335, y: 260, text: "photosynthesis", fill: "#7667e8", fontSize: 24 }] }
         ], ["Why do plants need light?", "What is glucose?", "Where does oxygen go?"]);
-    return { ...shared_1.sampleLesson, title: question.length > 70 ? "Let's explore your question" : question.replace(/[?.!]$/, ""), summary: "Here is a visual starting point. Ask a follow-up to connect this idea to your question." };
+    return { ...contracts_js_1.sampleLesson, title: question.length > 70 ? "Let's explore your question" : question.replace(/[?.!]$/, ""), summary: "Here is a visual starting point. Ask a follow-up to connect this idea to your question." };
 }

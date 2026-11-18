@@ -1,6 +1,6 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import type { AddressInfo } from "node:net";
-import { sampleLesson } from "@chalk/shared";
+import { sampleLesson } from "../src/schemas/contracts.js";
 import { createApp } from "../src/app.js";
 import { parseGeminiLesson } from "../src/services/gemini.js";
 import { demoLessonFor } from "../src/services/demo.js";

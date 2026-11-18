@@ -1,7 +1,7 @@
 import express, { type NextFunction, type Request, type Response } from "express";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
-import { lessonRequestSchema, lessonSchema, type Lesson } from "@chalk/shared";
+import { lessonRequestSchema, lessonSchema, type Lesson } from "./schemas/contracts.js";
 import { getEnv } from "./config/env.js";
 import { demoLessonFor } from "./services/demo.js";
 import { generateGeminiLesson, TutorProviderError } from "./services/gemini.js";

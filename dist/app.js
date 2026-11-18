@@ -7,7 +7,7 @@ exports.createApp = createApp;
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
-const shared_1 = require("@chalk/shared");
+const contracts_js_1 = require("./schemas/contracts.js");
 const env_js_1 = require("./config/env.js");
 const demo_js_1 = require("./services/demo.js");
 const gemini_js_1 = require("./services/gemini.js");
@@ -22,14 +22,14 @@ function createApp(generate) {
     app.get("/api/health", (_req, res) => res.json({ ok: true, service: "chalk-api", mode: env.GEMINI_API_KEY ? "live-ai" : "demo" }));
     const aiLimiter = (0, express_rate_limit_1.default)({ windowMs: 10 * 60 * 1000, limit: 20, standardHeaders: "draft-7", legacyHeaders: false, message: { error: "Too many tutor requests. Please wait a few minutes and try again.", code: "RATE_LIMITED" } });
     app.post("/api/tutor/lesson", aiLimiter, async (req, res, next) => {
-        const input = shared_1.lessonRequestSchema.safeParse(req.body);
+        const input = contracts_js_1.lessonRequestSchema.safeParse(req.body);
         if (!input.success) {
             res.status(400).json({ error: "Please provide a question (3–500 characters), a supported subject, and a short conversation history.", code: "INVALID_REQUEST", details: input.error.issues.map((issue) => ({ path: issue.path.join("."), message: issue.message })) });
             return;
         }
         try {
             const result = await createLesson(input.data);
-            const validated = shared_1.lessonSchema.safeParse(result);
+            const validated = contracts_js_1.lessonSchema.safeParse(result);
             if (!validated.success)
                 throw new gemini_js_1.TutorProviderError("The tutor response did not match a safe lesson format. Please try again.", "AI_INVALID_LESSON");
             res.json(validated.data);

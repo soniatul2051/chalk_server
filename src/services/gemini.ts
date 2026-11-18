@@ -1,4 +1,4 @@
-import { lessonSchema, type Lesson, type LessonRequest } from "@chalk/shared";
+import { lessonSchema, type Lesson, type LessonRequest } from "../schemas/contracts.js";
 import { getEnv } from "../config/env.js";
 
 export class TutorProviderError extends Error { constructor(message: string, readonly code = "AI_PROVIDER_ERROR", readonly status = 502) { super(message); this.name = "TutorProviderError"; } }

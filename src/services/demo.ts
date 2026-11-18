@@ -1,4 +1,4 @@
-import { sampleLesson, type Lesson } from "@chalk/shared";
+import { sampleLesson, type Lesson } from "../schemas/contracts.js";
 const make = (id: string, title: string, summary: string, equation: string, steps: Lesson["steps"], suggestions: string[]): Lesson => ({ lessonId: id, title, summary, steps, followUpSuggestions: suggestions, demo: true });
 export function demoLessonFor(question: string, context?: { title: string; summary: string }): Lesson {
   if (context) {

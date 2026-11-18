@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.TutorProviderError = void 0;
 exports.parseGeminiLesson = parseGeminiLesson;
 exports.generateGeminiLesson = generateGeminiLesson;
-const shared_1 = require("@chalk/shared");
+const contracts_js_1 = require("../schemas/contracts.js");
 const env_js_1 = require("../config/env.js");
 class TutorProviderError extends Error {
     code;
@@ -60,7 +60,7 @@ function parseGeminiLesson(text) {
     catch {
         throw new TutorProviderError("The tutor returned an unreadable lesson. Please try again.", "AI_INVALID_JSON");
     }
-    const validated = shared_1.lessonSchema.safeParse(parsed);
+    const validated = contracts_js_1.lessonSchema.safeParse(parsed);
     if (!validated.success)
         throw new TutorProviderError("The tutor response did not match a safe lesson format. Please try again.", "AI_INVALID_LESSON");
     return { ...validated.data, demo: false };
